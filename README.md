@@ -1,5 +1,5 @@
 # Team Services App
-A command line app for retrieving and exporting work items from Visual Studio Team Services. It currently supports hiearchical queries and exporting as CSV or for the Ideament app.
+A command line app for retrieving and exporting work items from Visual Studio Team Services. It currently supports hiearchical and flat queries with exporting to HTML, CSV, or for the Ideament app.
 
 Usage
 ======
