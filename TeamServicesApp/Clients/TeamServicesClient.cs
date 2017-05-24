@@ -24,14 +24,14 @@ namespace TeamServicesApp.Clients
 		}
 
 		/// <summary>
-		/// Downloads the top two levels of the hierarchy of the query, which must be of
-		/// type "Tree of work items" with a tree type of "Parent/Child".
+		/// Downloads the work items for the query. This supports both flat
+		/// queries and hierarchical. For hierarchical, this will retrieve the
+		/// top two levels of the hierarchy of the query, which must be of type
+		/// "Tree of work items" with a tree type of "Parent/Child".
 		/// </summary>
-		public List<TeamItem> RunHierarchyQuery(string folderName, string queryName)
+		public TeamResult RunQuery(string folderName, string queryName)
 		{
 			Console.WriteLine($"Running {folderName}/{queryName}");
-
-			var sortedItems = new List<TeamItem>();
 
 			// create instance of VssConnection using Personal Access Token
 			var connection = new VssConnection(new Uri(_collectionUrl), new VssBasicCredential(string.Empty, _personalAccessToken));
@@ -41,6 +41,9 @@ namespace TeamServicesApp.Clients
 
 			// get 2 levels of the query hierarchy items
 			var queryHierarchyItems = witClient.GetQueriesAsync(_projectName, depth: 2).Result;
+
+			// holders for our return value
+			TeamResult teamResult = null;
 
 			// find the folder we're looking for
 			var queriesFolder = queryHierarchyItems.FirstOrDefault(qhi => qhi.Name.Equals(folderName));
@@ -53,45 +56,90 @@ namespace TeamServicesApp.Clients
 				}
 
 				var result = witClient.QueryByIdAsync(query.Id).Result;
-				var hierarchyItems = new Dictionary<int, TeamItem>();
 
-				Console.Write("Retrieving results");
-				if (result.WorkItemRelations.Any()) {
-					foreach (var relation in result.WorkItemRelations) {
-						Console.Write(".");
+				Console.Write($"Retrieving results ({result.QueryType} query)");
 
-						var workItem = witClient.GetWorkItemAsync(relation.Target.Id).Result;
+				List<TeamItem> items = null;
+				switch (result.QueryType) {
+					case QueryType.Tree:
+						items = ProcessHierarchyItems(result, witClient);
+						break;
+					case QueryType.Flat:
+						items = ProcessFlatItems(result, witClient);
+						break;
+					case QueryType.OneHop:
+						throw new NotImplementedException($"{nameof(QueryType.OneHop)} not supported");
+				}
 
-						// create our own object to hold the item info. note that some fields
-						// may not be present in the work item so we have to check for the key
-						var item = new TeamItem()
-						{
-							Id = workItem.Id.Value,
-							WorkItemType = FieldStringOrNull(workItem, "System.WorkItemType"),
-							Title = FieldStringOrNull(workItem, "System.Title"),
-							State = FieldStringOrNull(workItem, "System.State"),
-							Tags = FieldStringOrNull(workItem, "System.Tags"),
-							Iteration = FieldStringOrNull(workItem, "System.IterationPath"),
-							Link = ((ReferenceLink)workItem.Links.Links["html"]).Href,
-							CreatedDate = (DateTime)workItem.Fields["System.CreatedDate"],
-						};
+				teamResult = new TeamResult
+				{
+					Items = items,
+					QueryType = result.QueryType
+				};
+			}
 
-						if (relation.Source != null) {
-							// it's a child, so add it to its parent
-							var parentItem = hierarchyItems[relation.Source.Id];
-							parentItem.Items.Add(item);
-						}
-						else {
-							// it's a parent, so add it to our list of parents
-							hierarchyItems[item.Id] = item;
-							sortedItems.Add(item);
-						}
+			Console.WriteLine("done");
+
+			return teamResult;
+		}
+
+		private List<TeamItem> ProcessHierarchyItems(WorkItemQueryResult result, WorkItemTrackingHttpClient witClient)
+		{
+			var hierarchyItems = new Dictionary<int, TeamItem>();
+			var sortedItems = new List<TeamItem>();
+
+			if (result.WorkItemRelations.Any()) {
+				foreach (var relation in result.WorkItemRelations) {
+					Console.Write(".");
+
+					var workItem = witClient.GetWorkItemAsync(relation.Target.Id).Result;
+
+					// create our own object to hold the item info
+					var item = CreateTeamItem(workItem);
+
+					if (relation.Source != null) {
+						// it's a child, so add it to its parent
+						var parentItem = hierarchyItems[relation.Source.Id];
+						parentItem.Items.Add(item);
+					}
+					else {
+						// it's a parent, so add it to our list of parents
+						hierarchyItems[item.Id] = item;
+						sortedItems.Add(item);
 					}
 				}
 			}
-			Console.WriteLine("done");
 
 			return sortedItems;
+		}
+
+		private List<TeamItem> ProcessFlatItems(WorkItemQueryResult result, WorkItemTrackingHttpClient witClient)
+		{
+			var items = new List<TeamItem>();
+			foreach (var workItemRef in result.WorkItems) {
+				Console.Write(".");
+				var workItem = witClient.GetWorkItemAsync(workItemRef.Id).Result;
+				items.Add(CreateTeamItem(workItem));
+			}
+
+			return items;
+		}
+
+		private TeamItem CreateTeamItem(WorkItem workItem)
+		{
+			// note that some fields may not be present in the work item so we
+			// have to check for the keys
+			return new TeamItem()
+			{
+				Id = workItem.Id.Value,
+				WorkItemType = FieldStringOrNull(workItem, "System.WorkItemType"),
+				Title = FieldStringOrNull(workItem, "System.Title"),
+				State = FieldStringOrNull(workItem, "System.State"),
+				Tags = FieldStringOrNull(workItem, "System.Tags"),
+				Iteration = FieldStringOrNull(workItem, "System.IterationPath"),
+				Link = ((ReferenceLink)workItem.Links.Links["html"]).Href,
+				CreatedDate = (DateTime)workItem.Fields["System.CreatedDate"],
+			};
 		}
 
 		private string FieldStringOrNull(WorkItem workItem, string fieldName)

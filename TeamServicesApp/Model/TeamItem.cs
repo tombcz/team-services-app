@@ -8,12 +8,12 @@ namespace TeamServicesApp.Model
 	public class TeamItem
 	{
 		public int Id { get; set; }
-		public string WorkItemType { get; set;  }
-		public string Title { get; set;  }
+		public string WorkItemType { get; set; }
+		public string Title { get; set; }
 		public string State { get; set; }
 		public string Link { get; set; }
 		public string Tags { get; set; }
-		public DateTime CreatedDate { get; set;  }
+		public DateTime CreatedDate { get; set; }
 		public string Iteration { get; set; }
 
 		public List<TeamItem> Items { get; set; }

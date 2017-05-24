@@ -238,14 +238,18 @@
   <ItemGroup>
     <Compile Include="Exporters\CsvExporter.cs" />
     <Compile Include="Clients\TeamServicesClient.cs" />
+    <Compile Include="Exporters\HtmlExporter.cs" />
     <Compile Include="Exporters\IdeamentExporter.cs" />
+    <Compile Include="Model\TeamResult.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Model\TeamItem.cs" />
     <Compile Include="Clients\BitlyClient.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

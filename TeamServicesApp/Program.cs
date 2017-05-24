@@ -16,10 +16,10 @@ namespace TeamServicesApp
 		{
 			// set our default folder and query names
 			var folderName = "My Queries";
-			var queryName = "New Query";
+			var queryName = "My Awesome Query";
 
 			// use the arguments from the command line if we got any
-			if(args.Length == 2) {
+			if (args.Length == 2) {
 				folderName = args[0];
 				queryName = args[1];
 			}
@@ -36,22 +36,22 @@ namespace TeamServicesApp
 			if(string.IsNullOrEmpty(token) == true ||
 				string.IsNullOrEmpty(url) == true ||
 				string.IsNullOrEmpty(project) == true) {
-				Console.WriteLine("You must set the Team Services Personal Access Token, Colection URL, and project name in the app.config");
+				Console.WriteLine("You must set the Team Services Personal Access Token, Colection URL, and project name in the App.config");
 				return;
 			}
 
 			// create our team services client
 			var client = new TeamServicesClient(url, token, project);
 
-			// retrieve the result set for the given hierarchical query
-			// (e.g. a query that returns epics with features as children)
-			var items = client.RunHierarchyQuery(folderName, queryName);
+			// retrieve the result set for the given query
+			var result = client.RunQuery(folderName, queryName);
 
 			// shorten the urls in the items
 			BitlyClient.ShortenUrlsForItems(items);
 
 			// export the query results as a csv file
-			CsvExporter.ExportHierarchy(queryName, items);
+			//CsvExporter.ExportItems(queryName, result);
+			HtmlExporter.ExportItems(queryName, result);
 		}
 	}
 }
