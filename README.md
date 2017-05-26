@@ -31,17 +31,18 @@ As an example, let's say we want a CSV that lists all the Features in our projec
 
 This will produce a result that when viewed in VSTS looks like a 2-level tree:
 ```
-1001  Epic     Major stuff
-1002  Feature      My great feature
-1006  Feature      Another feature
-1009  Epic     Big stuff
-1100  Feature      Yet another feature
+4320  Epic     App Feedback Epic
+4452  Feature      User can tap simley face to view feedback screen.
+4453  Feature      User can rate the app with 1 to 5 stars.
+4454  Feature      User can enter a friendly feedback message.
 ```
 
 The resulting (denormalized) CSV file looks like:
 ```
-1002, Feature, My great feature, Major stuff
-1006, Feature, Another feature, Major stuff
-1100, Feature, Yet another feature, Big stuff
+4452, Feature, User can tap simley face to view feedback screen., App Feedback Epic, Feedback, UI, New, Secret Project
+4453, Feature, User can rate the app with 1 to 5 stars., App Feedback Epic, Feedback, New, Secret Project
+4454, Feature, User can enter a friendly feedback message., App Feedback Epic, Feedback, New, Secret Project
 ```
 
+The resulting HTML file looks like:
+![HTML Output](docs/html_output.png)
