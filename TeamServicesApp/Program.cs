@@ -15,14 +15,20 @@ namespace TeamServicesApp
 		static void Main(string[] args)
 		{
 			// set our default folder and query names
-			var folderName = "My Queries";
-			var queryName = "My Awesome Query";
+			string folderName = null;
+            string queryName = null;
+            string exportFormat = null;
 
 			// use the arguments from the command line if we got any
-			if (args.Length == 2) {
+			if (args.Length == 3) {
 				folderName = args[0];
 				queryName = args[1];
+                exportFormat = args[2];
 			}
+            else
+            {
+                throw new ArgumentException("Command line arguments not provided");
+            }
 
 			// give our bitly client our access token if there is one (not required)
 			BitlyClient.AccessToken = ConfigurationManager.AppSettings["BitlyAccessToken"];
@@ -47,11 +53,18 @@ namespace TeamServicesApp
 			var result = client.RunQuery(folderName, queryName);
 
 			// shorten the urls in the items
-			BitlyClient.ShortenUrlsForItems(items);
+			BitlyClient.ShortenUrls(result.Items);
 
-			// export the query results as a csv file
-			//CsvExporter.ExportItems(queryName, result);
-			HtmlExporter.ExportItems(queryName, result);
+            // export the query results
+            switch (exportFormat)
+            {
+                case "csv":
+                    CsvExporter.ExportItems(queryName, result);
+                    break;
+                case "html":
+                    HtmlExporter.ExportItems(queryName, result);
+                    break;           
+            }
 		}
 	}
 }

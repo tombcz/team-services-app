@@ -15,18 +15,24 @@ namespace TeamServicesApp.Clients
 		/// </summary>
 		public static string AccessToken { get; set; }
 
-		public static void ShortenUrlsForItems(IList<TeamItem> items)
+        public static void ShortenUrls(IList<TeamItem> items)
+        {
+            Console.Write("Shortening URLs");
+            ShortenUrlsRecursive(items);
+            Console.WriteLine("done");
+        }
+
+        private static void ShortenUrlsRecursive(IList<TeamItem> items)
 		{
 			if (string.IsNullOrEmpty(AccessToken) == false) {
-				Console.Write("Shortening URLs");
 				foreach (var item in items) {
 					item.Link = ShortenUrl(item.Link).Result;
 					foreach (var child in item.Items) {
 						Console.Write(".");
 						item.Link = ShortenUrl(item.Link).Result;
 					}
+                    ShortenUrlsRecursive(item.Items);
 				}
-				Console.WriteLine("done");
 			}
 		}
 
