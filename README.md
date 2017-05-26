@@ -13,9 +13,9 @@ The app also has the ability to use Bitly to shorten the URL deep-links to the w
 
 Then run the app from the command-line as such:
 
-```team-services-app "My Queries" "My Query"```
+```team-services-app "My Queries" "My Query" "html"```
 
-where "My Queries" is the name of the folder in VSTS (under Work > Queries) and "My Query" is the name of the query. The query must be hierarchical (two levels) with type "Tree of work items" and a tree type of "Parent/Child".
+where "My Queries" is the name of the folder in VSTS (under Work > Queries), "My Query" is the name of the query, and "html" is the export format ("csv" is also supported). The query can be hierarchical (two levels) with type "Tree of work items" and a tree type of "Parent/Child" or a simple flat query.
 
 Example
 =======
